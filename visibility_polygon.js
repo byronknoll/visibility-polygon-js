@@ -182,7 +182,8 @@ VisibilityPolygon.trace = function(cur, next, sorted, polygons, position, polygo
 	
 	for (var k = 0; k < sorted.length; ++k) {
 		var j = (k + start) % sorted.length;
-		if (VisibilityPolygon.equal(sorted[j][0], cur) || VisibilityPolygon.equal(sorted[j][0], polygons[next[0]][next[1]])) continue;
+		if (VisibilityPolygon.equal(sorted[j][0], cur)) continue;
+		if (VisibilityPolygon.equal(sorted[j][0], polygons[next[0]][next[1]])) break;
 		var a1 = sorted[j][3];
 		var a2 = VisibilityPolygon.angle(cur, position);
 		var a3 = VisibilityPolygon.angle(polygons[next[0]][next[1]], position);
