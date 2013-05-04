@@ -12,19 +12,19 @@ The time complexity of this implementation is O(N^2) (where N is the total numbe
 The following three functions should be useful:
 
 1) VisibilityPolygon.compute(position, polygons)
-  Computes a visibility polygon.
+  Computes a visibility polygon. O(N^2) time complexity.
   Arguments:
     position - The location of the observer. Must not be within an obstacle (see the inObstacle function below).
     polygons - A list of polygons representing obstacles. The first polygon should be the outer boundary - all other polygons should be contained within the boundary and non-intersecting. All polygons should be specified in clockwise vertex order (see the convertToClockwise function below).
   Returns: The visibility polygon (in clockwise vertex order).
 
 2) VisibilityPolygon.inObstacle(position, polygons)
-  Calculates whether a point is within an obstacle.
+  Calculates whether a point is within an obstacle. O(N) time complexity.
   Arguments: same as compute function above.
   Returns: True if "position" is within an obstacle.
 
 3) VisibilityPolygon.convertToClockwise(polygons)
-  Converts the given polygons to clockwise vertex order.
+  Converts the given polygons to clockwise vertex order. O(N) time complexity.
   Arguments: a list of polygons (in either clockwise or counterclockwise vertex order).
   Returns: a list of polygons in clockwise vertex order.
 
@@ -56,6 +56,7 @@ VisibilityPolygon.compute = function(position, polygons) {
 	var first = true;
 	for (var i = 0; i < 2 * sorted.length; ++i) {
 		polygon.push(cur);
+		VisibilityPolygon.hop(cur, next, polygons, position);
 		var end = VisibilityPolygon.closestPoint(cur, polygons[next[0]][next[1]], start);
 		if (VisibilityPolygon.equal(end, start) && !first) break;
 		var a = VisibilityPolygon.angle2(polygons[next[0]][next[1]], cur, position);
@@ -121,6 +122,28 @@ VisibilityPolygon.isClockwise = function(polygon) {
 	return sum < 0;
 };
 
+VisibilityPolygon.hop = function(cur, next, polygons, position) {
+	var best_a = -1;
+	var a2 = VisibilityPolygon.angle2(polygons[next[0]][next[1]], cur, position);
+	for (var i = 0; i < polygons.length; ++i) {
+		if (i == next[0]) continue;
+		for (var j = 0; j < polygons[i].length; ++j) {
+			var k = j+1;
+			if (k == polygons[i].length) k = 0;
+			if (!VisibilityPolygon.equal(cur, polygons[i][k])) continue;
+			var a1 = VisibilityPolygon.angle2(polygons[i][j], polygons[i][k], position);
+			if (a1 <= 0 || a1 >= 180) continue;
+			if (a2 <= 0 || a2 >= 180 || a2 < a1) {
+				if (a1 > best_a) {
+					best_a = a1;
+					next[0] = i;
+					next[1] = j;
+				}
+			}
+		}
+	}
+};
+
 VisibilityPolygon.extend = function(cur, next, polygons, position) {
 	var bestDis = -1;
 	var best = [0, 0];
@@ -157,9 +180,12 @@ VisibilityPolygon.extend = function(cur, next, polygons, position) {
 	return best;
 };
 
+VisibilityPolygon.epsilon = function() {
+	return 0.0000001;
+}
+
 VisibilityPolygon.trace = function(cur, next, sorted, polygons, position, polygon) {
 	var start = 0;
-	var eps = 0.00001;
 	var a = VisibilityPolygon.angle(cur, position);
 	for (var j = 0; j < sorted.length; ++j) {
 		if (VisibilityPolygon.equal(sorted[j][0], cur)) {
@@ -168,12 +194,12 @@ VisibilityPolygon.trace = function(cur, next, sorted, polygons, position, polygo
 		}
 		var k = j + 1;
 		if (k == sorted.length) {
-			if (a > sorted[j][3]-eps) {
+			if (a > sorted[j][3]-VisibilityPolygon.epsilon()) {
 				start = j;
 				break;
 			}
 		} else {
-			if (a > sorted[j][3]-eps && a < sorted[k][3]+eps) {
+			if (a > sorted[j][3]-VisibilityPolygon.epsilon() && a < sorted[k][3]+VisibilityPolygon.epsilon()) {
 				start = j;
 				break;
 			}
@@ -195,7 +221,7 @@ VisibilityPolygon.trace = function(cur, next, sorted, polygons, position, polygo
 			a3 += 360;
 			if (a1 < -90) a1 += 360;
 		}
-		if ((a1 > a2 + eps && a1 <= a3 && a3 - a2 < 180) || (a1 >= a3 && a1 < a2 - eps && a2 - a3 < 180)) {
+		if ((a1 > a2 + VisibilityPolygon.epsilon() && a1 <= a3 && a3 - a2 < 180) || (a1 >= a3 && a1 < a2 - VisibilityPolygon.epsilon() && a2 - a3 < 180)) {
 			var intersect = VisibilityPolygon.intersectLines(sorted[j][0], position, cur, polygons[next[0]][next[1]]);
 			if (intersect.length > 0) {
 				var d1 = VisibilityPolygon.distance(position, intersect);
@@ -225,8 +251,7 @@ VisibilityPolygon.increment = function(next, len) {
 };
 
 VisibilityPolygon.equal = function(a, b) {
-	var eps = 0.00001;
-	if (Math.abs(a[0] - b[0]) < eps && Math.abs(a[1] - b[1]) < eps) return true;
+	if (Math.abs(a[0] - b[0]) < VisibilityPolygon.epsilon() && Math.abs(a[1] - b[1]) < VisibilityPolygon.epsilon()) return true;
 	return false;
 };
 
@@ -246,7 +271,8 @@ VisibilityPolygon.getSegments = function(polygon, a, position) {
 			a3 += 360;
 			if (a < -90) a1 += 360;
 		}
-		if ((a1 >= a2 && a1 <= a3 && a3 - a2 < 180) || (a1 >= a3 && a1 <= a2 && a2 - a3 < 180)) {
+		if ((a1 >= a2 - VisibilityPolygon.epsilon() && a1 <= a3 + VisibilityPolygon.epsilon() && a3 - a2 < 180) ||
+				(a1 >= a3 - VisibilityPolygon.epsilon() && a1 <= a2 + VisibilityPolygon.epsilon() && a2 - a3 < 180)) {
 			segments.push([i,j]);
 		}
 	}
