@@ -45,6 +45,7 @@ function VisibilityPolygon(){};
 
 VisibilityPolygon.compute = function(position, polygons) {
 	var sorted = VisibilityPolygon.sortPoints(position, polygons);
+	var map = VisibilityPolygon.makeMap(polygons);
 	var polygon = [];
 	var vertex = VisibilityPolygon.firstVisibleVertex(position, polygons);
 	var start = [vertex[0][0], vertex[0][1]];
@@ -56,7 +57,7 @@ VisibilityPolygon.compute = function(position, polygons) {
 	var first = true;
 	for (var i = 0; i < 2 * sorted.length; ++i) {
 		polygon.push(cur);
-		VisibilityPolygon.hop(cur, next, polygons, position);
+		VisibilityPolygon.hop(cur, next, map, polygons, position);
 		var end = VisibilityPolygon.closestPoint(cur, polygons[next[0]][next[1]], start);
 		if (VisibilityPolygon.equal(end, start) && !first) break;
 		var a = VisibilityPolygon.angle2(polygons[next[0]][next[1]], cur, position);
@@ -122,21 +123,29 @@ VisibilityPolygon.isClockwise = function(polygon) {
 	return sum < 0;
 };
 
-VisibilityPolygon.hop = function(cur, next, polygons, position) {
-	var best_a = -1;
-	var a2 = VisibilityPolygon.angle2(polygons[next[0]][next[1]], cur, position);
-	for (var i = 0; i < polygons.length; ++i) {
-		if (i == next[0]) continue;
-		for (var j = 0; j < polygons[i].length; ++j) {
-			var k = j+1;
-			if (k == polygons[i].length) k = 0;
-			if (!VisibilityPolygon.equal(cur, polygons[i][k])) continue;
-			var a1 = VisibilityPolygon.angle2(polygons[i][j], polygons[i][k], position);
+VisibilityPolygon.epsilon = function() {
+	return 0.0000001;
+}
+
+VisibilityPolygon.hop = function(cur, next, map, polygons, position) {
+	var key = cur[0] + "," + cur[1];
+	if (key in map) {
+		var best_a = -1;
+		var a2 = VisibilityPolygon.angle2(polygons[next[0]][next[1]], cur, position);
+		var arr = map[key];
+		if (arr.length == 1) return;
+		for (var i = 0; i < arr.length; ++i) {
+			if (arr[i][1] == next[0]) continue;
+			var k = arr[i][2];
+			var j = k - 1;
+			if (j == -1) j = polygons[arr[i][1]].length - 1;
+			if (!VisibilityPolygon.equal(cur, polygons[arr[i][1]][k])) continue;
+			var a1 = VisibilityPolygon.angle2(polygons[arr[i][1]][j], polygons[arr[i][1]][k], position);
 			if (a1 <= 0 || a1 >= 180) continue;
 			if (a2 <= 0 || a2 >= 180 || a2 < a1) {
 				if (a1 > best_a) {
 					best_a = a1;
-					next[0] = i;
+					next[0] = arr[i][1];
 					next[1] = j;
 				}
 			}
@@ -180,32 +189,33 @@ VisibilityPolygon.extend = function(cur, next, polygons, position) {
 	return best;
 };
 
-VisibilityPolygon.epsilon = function() {
-	return 0.0000001;
-}
-
 VisibilityPolygon.trace = function(cur, next, sorted, polygons, position, polygon) {
 	var start = 0;
 	var a = VisibilityPolygon.angle(cur, position);
-	for (var j = 0; j < sorted.length; ++j) {
-		if (VisibilityPolygon.equal(sorted[j][0], cur)) {
-			start = j;
-			break;
-		}
-		var k = j + 1;
-		if (k == sorted.length) {
-			if (a > sorted[j][3]-VisibilityPolygon.epsilon()) {
-				start = j;
+	var bot = 0;
+	var top = sorted.length-1;
+	if (sorted[0][3] + VisibilityPolygon.epsilon() > a) {
+		start = 0;
+	} else if (sorted[top][3] < a + VisibilityPolygon.epsilon()) {
+		start = top;
+	} else {
+		while (true) {
+			var mid = bot + Math.floor((top-bot) / 2);
+			if (bot == mid) {
+				start = bot;
 				break;
 			}
-		} else {
-			if (a > sorted[j][3]-VisibilityPolygon.epsilon() && a < sorted[k][3]+VisibilityPolygon.epsilon()) {
-				start = j;
+			if (VisibilityPolygon.equal(sorted[mid][0], cur)) {
+				start = mid;
 				break;
 			}
+			if (sorted[mid][3] < a + VisibilityPolygon.epsilon()) {
+				bot = mid;
+				continue;
+			}
+			top = mid;
 		}
 	}
-	
 	for (var k = 0; k < sorted.length; ++k) {
 		var j = (k + start) % sorted.length;
 		if (VisibilityPolygon.equal(sorted[j][0], cur)) continue;
@@ -292,6 +302,21 @@ VisibilityPolygon.sortPoints = function(position, polygons) {
 			return a[3]-b[3];
 		});
 	return points;
+};
+
+VisibilityPolygon.makeMap = function(polygons) {
+	var map = {};
+	var points = [];
+	for (var i = 0; i < polygons.length; ++i) {
+		for (var j = 0; j < polygons[i].length; ++j) {
+			var key = polygons[i][j][0] + "," + polygons[i][j][1];
+			if (!(key in map)) {
+				map[key] = [];
+			}
+			map[key].push([polygons[i][j], i, j]);
+		}
+	}
+	return map;
 };
 
 VisibilityPolygon.angle = function(a, b) {
