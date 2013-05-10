@@ -15,7 +15,7 @@ The following three functions should be useful:
   Computes a visibility polygon. O(N log N) time complexity.
   Arguments:
     position - The location of the observer. Must be completely surrounded by line segments (an easy way to enforce this is to create an outer bounding box).
-    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates.
+    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can *not* intersect each other (although overlapping vertices is OK).
   Returns: The visibility polygon (in clockwise vertex order).
 
 2) VisibilityPolygon.inPolygon(position, polygon)
