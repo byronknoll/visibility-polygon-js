@@ -1,6 +1,8 @@
 /*
+visibility_polygon.js version 1.5
+
 This code is released into the public domain - attribution is appreciated but not required.
-Made by Byron Knoll in 2013.
+Made by Byron Knoll in 2014.
 
 https://code.google.com/p/visibility-polygon-js/
 Demo: http://www.byronknoll.com/visibility.html
@@ -9,26 +11,31 @@ This library can be used to construct a visibility polygon for a set of line seg
 
 The time complexity of this implementation is O(N log N) (where N is the total number of line segments). This is the optimal time complexity for this problem.
 
-The following three functions should be useful:
+The following functions should be useful:
 
 1) VisibilityPolygon.compute(position, segments)
-  Computes a visibility polygon. O(N log N) time complexity.
+  Computes a visibility polygon. O(N log N) time complexity (where N is the number of line segments).
   Arguments:
     position - The location of the observer. Must be completely surrounded by line segments (an easy way to enforce this is to create an outer bounding box).
-    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can *not* intersect each other (although overlapping vertices is OK).
+    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can *not* intersect each other (although overlapping vertices is OK). Use the "breakIntersections" function to fix intersecting line segments.
   Returns: The visibility polygon (in clockwise vertex order).
 
 2) VisibilityPolygon.inPolygon(position, polygon)
-  Calculates whether a point is within a polygon. O(N) time complexity.
+  Calculates whether a point is within a polygon. O(N) time complexity (where N is the number of points in the polygon).
   Arguments:
     position - The point to check: a list of two coordinates.
     polygon - The polygon to check: a list of points. The polygon can be specified in either clockwise or counterclockwise vertex order.
   Returns: True if "position" is within the polygon.
 
 3) VisibilityPolygon.convertToSegments(polygons)
-  Converts the given polygons to list of line segments. O(N) time complexity.
+  Converts the given polygons to list of line segments. O(N) time complexity (where N is the number of polygons).
   Arguments: a list of polygons (in either clockwise or counterclockwise vertex order). Each polygon should be a list of points. Each point should be a list of two coordinates.
-  Returns: a list line segments.
+  Returns: a list of line segments.
+
+4) VisibilityPolygon.breakIntersections(segments)
+  Breaks apart line segments so that none of them intersect. O(N^2) time complexity (where N is the number of line segments).
+  Arguments: a list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates.
+  Returns: a list of line segments.
 
 Example code:
 
@@ -36,6 +43,7 @@ var polygons = [];
 polygons.push([[-1,-1],[501,-1],[501,501],[-1,501]]);
 polygons.push([[250,100],[260,140],[240,140]]);
 var segments = VisibilityPolygon.convertToSegments(polygons);
+segments = VisibilityPolygon.breakIntersections(segments);
 var position = [10, 10];
 if (VisibilityPolygon.inPolygon(position, polygons[0])) {
   var visibility = VisibilityPolygon.compute(position, segments);
@@ -133,6 +141,40 @@ VisibilityPolygon.convertToSegments = function(polygons) {
 		}
 	}
 	return segments;
+};
+
+VisibilityPolygon.breakIntersections = function(segments) {
+	var output = [];
+	for (var i = 0; i < segments.length; ++i) {
+		var intersections = [];
+		for (var j = 0; j < segments.length; ++j) {
+			if (i == j) continue;
+			if (VisibilityPolygon.doLineSegmentsIntersect(segments[i][0][0], segments[i][0][1], segments[i][1][0], segments[i][1][1], segments[j][0][0], segments[j][0][1], segments[j][1][0], segments[j][1][1])) {
+				var intersect = VisibilityPolygon.intersectLines(segments[i][0], segments[i][1], segments[j][0], segments[j][1]);
+				if (intersect.length != 2) continue;
+				if (VisibilityPolygon.equal(intersect, segments[i][0]) || VisibilityPolygon.equal(intersect, segments[i][1])) continue;
+				intersections.push(intersect);
+			}
+		}
+		var start = segments[i][0];
+		while (intersections.length > 0) {
+			var endIndex = 0;
+			var endDis = VisibilityPolygon.distance(start, intersections[0]);
+			for (var j = 1; j < intersections.length; ++j) {
+				var dis = VisibilityPolygon.distance(start, intersections[j]);
+				if (dis < endDis) {
+					endDis = dis;
+					endIndex = j;
+				}
+			}
+			output.push([[start[0], start[1]], [intersections[endIndex][0], intersections[endIndex][1]]]);
+			start[0] = intersections[endIndex][0];
+			start[1] = intersections[endIndex][1];
+			intersections.splice(endIndex, 1);
+		}
+		output.push([start, segments[i][1]]);
+	}
+	return output;
 };
 
 VisibilityPolygon.epsilon = function() {
