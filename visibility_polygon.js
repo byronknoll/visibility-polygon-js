@@ -4,7 +4,7 @@ visibility_polygon.js version 1.5
 This code is released into the public domain - attribution is appreciated but not required.
 Made by Byron Knoll in 2014.
 
-https://code.google.com/p/visibility-polygon-js/
+https://github.com/byronknoll/visibility-polygon-js
 */
 
 function VisibilityPolygon(){}
