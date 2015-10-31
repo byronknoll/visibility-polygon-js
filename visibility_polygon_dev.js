@@ -1,8 +1,8 @@
 /*
-visibility_polygon.js version 1.5
+visibility_polygon.js version 1.6
 
 This code is released into the public domain - attribution is appreciated but not required.
-Made by Byron Knoll in 2014.
+Made by Byron Knoll.
 
 https://github.com/byronknoll/visibility-polygon-js
 Demo: http://www.byronknoll.com/visibility.html
@@ -156,7 +156,7 @@ VisibilityPolygon.breakIntersections = function(segments) {
 				intersections.push(intersect);
 			}
 		}
-		var start = segments[i][0];
+		var start = [segments[i][0][0], segments[i][0][1]];
 		while (intersections.length > 0) {
 			var endIndex = 0;
 			var endDis = VisibilityPolygon.distance(start, intersections[0]);
