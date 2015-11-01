@@ -16,7 +16,7 @@ The following functions should be useful:
   Computes a visibility polygon. O(N log N) time complexity (where N is the number of line segments).
   Arguments:
     position - The location of the observer. If the observer is not completely surrounded by line segments, an outer bounding-box will be automatically created (so that the visibility polygon does not extend to infinity).
-    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can not intersect each other (although overlapping vertices is OK). Use the "breakIntersections" function to fix intersecting line segments.
+    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can not intersect each other. Overlapping vertices are OK, but it is not OK if a vertex is touching the middle of a line segment. Use the "breakIntersections" function to fix intersecting line segments.
   Returns: The visibility polygon (in clockwise vertex order).
 
 2) VisibilityPolygon.computeViewport(position, segments, viewportTopLeft, viewportBottomRight)
