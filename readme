@@ -1,4 +1,4 @@
-visibility_polygon.js version 1.6
+visibility_polygon.js version 1.7
 
 This code is released into the public domain - attribution is appreciated but not required.
 Made by Byron Knoll.
@@ -16,22 +16,31 @@ The following functions should be useful:
   Computes a visibility polygon. O(N log N) time complexity (where N is the number of line segments).
   Arguments:
     position - The location of the observer. Must be completely surrounded by line segments (an easy way to enforce this is to create an outer bounding box).
-    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can *not* intersect each other (although overlapping vertices is OK). Use the "breakIntersections" function to fix intersecting line segments.
+    segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can not intersect each other (although overlapping vertices is OK). Use the "breakIntersections" function to fix intersecting line segments.
   Returns: The visibility polygon (in clockwise vertex order).
 
-2) VisibilityPolygon.inPolygon(position, polygon)
+2) VisibilityPolygon.computeViewport(position, segments, viewportTopLeft, viewportBottomRight)
+  Computes a visibility polygon within the given viewport. This can be faster than the "compute" function if there are many segments outside of the viewport.
+  Arguments:
+    position - The location of the observer. Must be within the viewport.
+    segments - A list of line segments. Line segments can not intersect each other. It is OK if line segments intersect the viewport.
+    viewportTopLeft - The top-left corner of the viewport.
+    viewportBottomRight - The bottom-right corner of the viewport.
+  Returns: The visibility polygon within the viewport (in clockwise vertex order).
+
+3) VisibilityPolygon.inPolygon(position, polygon)
   Calculates whether a point is within a polygon. O(N) time complexity (where N is the number of points in the polygon).
   Arguments:
     position - The point to check: a list of two coordinates.
     polygon - The polygon to check: a list of points. The polygon can be specified in either clockwise or counterclockwise vertex order.
   Returns: True if "position" is within the polygon.
 
-3) VisibilityPolygon.convertToSegments(polygons)
+4) VisibilityPolygon.convertToSegments(polygons)
   Converts the given polygons to list of line segments. O(N) time complexity (where N is the number of polygons).
   Arguments: a list of polygons (in either clockwise or counterclockwise vertex order). Each polygon should be a list of points. Each point should be a list of two coordinates.
   Returns: a list of line segments.
 
-4) VisibilityPolygon.breakIntersections(segments)
+5) VisibilityPolygon.breakIntersections(segments)
   Breaks apart line segments so that none of them intersect. O(N^2) time complexity (where N is the number of line segments).
   Arguments: a list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates.
   Returns: a list of line segments.
@@ -43,7 +52,8 @@ polygons.push([[-1,-1],[501,-1],[501,501],[-1,501]]);
 polygons.push([[250,100],[260,140],[240,140]]);
 var segments = VisibilityPolygon.convertToSegments(polygons);
 segments = VisibilityPolygon.breakIntersections(segments);
-var position = [10, 10];
+var position = [60, 60];
 if (VisibilityPolygon.inPolygon(position, polygons[0])) {
   var visibility = VisibilityPolygon.compute(position, segments);
 }
+var viewportVisibility = VisibilityPolygon.computeViewport(position, segments, [50, 50], [450, 450]);
