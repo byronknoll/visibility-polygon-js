@@ -141,8 +141,8 @@ VisibilityPolygon.computeViewport = function(position, segments, viewportTopLeft
 	var brokenSegments = [];
 	var viewport = [[viewportTopLeft[0],viewportTopLeft[1]],[viewportBottomRight[0],viewportTopLeft[1]],[viewportBottomRight[0],viewportBottomRight[1]],[viewportTopLeft[0],viewportBottomRight[1]]];
 	for (var i = 0; i < segments.length; ++i) {
-		if (segments[i][0][0] < viewportTopLeft[0] && segments[i][1][0] < viewPortTopLeft[0]) continue;
-		if (segments[i][0][1] < viewportTopLeft[1] && segments[i][1][1] < viewPortTopLeft[1]) continue;
+		if (segments[i][0][0] < viewportTopLeft[0] && segments[i][1][0] < viewportTopLeft[0]) continue;
+		if (segments[i][0][1] < viewportTopLeft[1] && segments[i][1][1] < viewportTopLeft[1]) continue;
 		if (segments[i][0][0] > viewportBottomRight[0] && segments[i][1][0] > viewportBottomRight[0]) continue;
 		if (segments[i][0][1] > viewportBottomRight[1] && segments[i][1][1] > viewportBottomRight[1]) continue;
 		var intersections = [];
