@@ -19,13 +19,13 @@ The following functions should be useful:
     segments - A list of line segments. Each line segment should be a list of two points. Each point should be a list of two coordinates. Line segments can not intersect each other. Overlapping vertices are OK, but it is not OK if a vertex is touching the middle of a line segment. Use the "breakIntersections" function to fix intersecting line segments.
   Returns: The visibility polygon (in clockwise vertex order).
 
-2) VisibilityPolygon.computeViewport(position, segments, viewportTopLeft, viewportBottomRight)
+2) VisibilityPolygon.computeViewport(position, segments, viewportMinCorner, viewportMaxCorner)
   Computes a visibility polygon within the given viewport. This can be faster than the "compute" function if there are many segments outside of the viewport.
   Arguments:
     position - The location of the observer. Must be within the viewport.
     segments - A list of line segments. Line segments can not intersect each other. It is OK if line segments intersect the viewport.
-    viewportTopLeft - The top-left corner of the viewport.
-    viewportBottomRight - The bottom-right corner of the viewport.
+    viewportMinCorner - The minimum X and Y coordinates of the viewport.
+    viewportMaxCorner - The maximum X and Y coordinates of the viewport.
   Returns: The visibility polygon within the viewport (in clockwise vertex order).
 
 3) VisibilityPolygon.inPolygon(position, polygon)
