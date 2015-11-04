@@ -401,11 +401,11 @@ VisibilityPolygon.angle = function(a, b) {
 
 VisibilityPolygon.intersectLines = function(a1, a2, b1, b2) {
 	var ua_t = (b2[0] - b1[0]) * (a1[1] - b1[1]) - (b2[1] - b1[1]) * (a1[0] - b1[0]);
-	var ub_t = (a2[0] - a1[0]) * (a1[1] - b1[1]) - (a2[1] - a1[1]) * (a1[0] - b1[0]);
+	//var ub_t = (a2[0] - a1[0]) * (a1[1] - b1[1]) - (a2[1] - a1[1]) * (a1[0] - b1[0]);
 	var u_b  = (b2[1] - b1[1]) * (a2[0] - a1[0]) - (b2[0] - b1[0]) * (a2[1] - a1[1]);
 	if (u_b != 0) {
 		var ua = ua_t / u_b;
-		var ub = ub_t / u_b;
+		//var ub = ub_t / u_b;
 		return [a1[0] - ua * (a1[0] - a2[0]), a1[1] - ua * (a1[1] - a2[1])];
 	}
 	return [];
