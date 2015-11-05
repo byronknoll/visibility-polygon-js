@@ -400,17 +400,23 @@ VisibilityPolygon.angle = function(a, b) {
 };
 
 VisibilityPolygon.intersectLines = function(a1, a2, b1, b2) {
-	var ua_t = (b2[0] - b1[0]) * (a1[1] - b1[1]) - (b2[1] - b1[1]) * (a1[0] - b1[0]);
-	var u_b  = (b2[1] - b1[1]) * (a2[0] - a1[0]) - (b2[0] - b1[0]) * (a2[1] - a1[1]);
+	var dbx = b2[0] - b1[0];
+	var dby = b2[1] - b1[1];
+	var dax = a2[0] - a1[0];
+	var day = a2[1] - a1[1];
+	
+	var u_b  = dby * dax - dbx * day;
 	if (u_b != 0) {
-		var ua = ua_t / u_b;
-		return [a1[0] - ua * (a1[0] - a2[0]), a1[1] - ua * (a1[1] - a2[1])];
+		var ua = (dbx * (a1[1] - b1[1]) - dby * (a1[0] - b1[0])) / u_b;
+		return [a1[0] - ua * -dax, a1[1] - ua * -day];
 	}
 	return [];
 };
 
 VisibilityPolygon.distance = function(a, b) {
-	return (a[0]-b[0])*(a[0]-b[0]) + (a[1]-b[1])*(a[1]-b[1]);
+	var dx = a[0]-b[0];
+	var dy = a[1]-b[1];
+	return dx*dx + dy*dy;
 };
 
 VisibilityPolygon.isOnSegment = function(xi, yi, xj, yj, xk, yk) {
